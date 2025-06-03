@@ -45,6 +45,7 @@
                                         <tr>
                                             <th class="py-2 px-4 border">Horário</th>
                                             <th class="py-2 px-4 border">Foto</th>
+                                            <th class="py-2 px-4 border">Localização</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -58,6 +59,21 @@
                                                             class="w-20 h-20 object-cover rounded border border-gray-300 shadow-sm">
                                                     </a>
                                                 </td>
+                                                <td class="py-2 px-4 border text-sm">
+                                                    @if ($registro->user && $registro->user->latitude && $registro->user->longitude)
+                                                        <a href="https://www.google.com/maps?q={{ $registro->user->latitude }},{{ $registro->user->longitude }}"
+                                                            target="_blank" class="text-blue-600 hover:underline">
+                                                            📍 Ver no mapa
+                                                        </a>
+                                                        <div class="text-gray-500 text-xs">
+                                                            {{ $registro->user->latitude }},
+                                                            {{ $registro->user->longitude }}
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-400 italic">Não informado</span>
+                                                    @endif
+                                                </td>
+
                                             </tr>
                                         @endforeach
                                     </tbody>

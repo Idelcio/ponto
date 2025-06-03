@@ -17,7 +17,7 @@ use App\Mail\RegistroPontoEmail;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Exibe o formulário de login.
      */
     public function create(): View
     {
@@ -25,32 +25,45 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Processa o login.
      */
-    public function store(LoginRequest $request): \Illuminate\View\View|RedirectResponse
+    public function store(LoginRequest $request): View|RedirectResponse
     {
         $request->authenticate();
         $request->session()->regenerate();
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Se for funcionário e enviou foto
+
+        if ($request->filled('latitude') && $request->filled('longitude')) {
+            $user->update([
+                'latitude' => $request->input('latitude'),
+                'longitude' => $request->input('longitude'),
+            ]);
+        }
+
+
+        // Se for funcionário e enviou a foto, registra o ponto
         if (!$user->is_admin && $request->filled('foto')) {
             $base64 = str_replace('data:image/jpeg;base64,', '', $request->input('foto'));
             $imageData = base64_decode($base64);
             $fileName = 'ponto_' . time() . '.jpg';
             $filePath = 'pontos/' . $fileName;
+
             Storage::disk('public')->put($filePath, $imageData);
 
             $registro = RegistroPonto::create([
                 'user_id' => $user->id,
                 'foto' => $filePath,
-                'registrado_em' => now()
+                'registrado_em' => now(),
+                'latitude' => $user->latitude,
+                'longitude' => $user->longitude,
             ]);
 
             Mail::to($user->email)->send(new RegistroPontoEmail($registro));
 
-            // Logout imediato após o registro do ponto
+            // Logout após registro do ponto
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -60,15 +73,12 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        // Agora, todos (admin ou não) vão para a mesma dashboard
+        // Se for admin ou login normal, redireciona para a dashboard
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
-
-
-
     /**
-     * Destroy an authenticated session.
+     * Logout
      */
     public function destroy(Request $request): RedirectResponse
     {
