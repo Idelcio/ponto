@@ -48,5 +48,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/usuarios/{user}/relatorio', [UsuarioController::class, 'formRelatorio'])->name('usuarios.formRelatorio');
     Route::post('/usuarios/{user}/relatorio', [UsuarioController::class, 'gerarRelatorio'])->name('usuarios.gerarRelatorio');
 });
-
+Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
 require __DIR__ . '/auth.php';

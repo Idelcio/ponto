@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'admin_id'
     ];
 
     /**
@@ -48,5 +49,16 @@ class User extends Authenticatable
     public function registros()
     {
         return $this->hasMany(\App\Models\RegistroPonto::class);
+    }
+    // Um admin tem muitos funcionários
+    public function funcionarios()
+    {
+        return $this->hasMany(User::class, 'admin_id');
+    }
+
+    // Um funcionário pertence a um admin
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
     }
 }

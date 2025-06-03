@@ -14,9 +14,37 @@ class UsuarioController extends Controller
     {
         if (!Auth::check() || !Auth::user()->is_admin) abort(403);
 
-        $usuarios = User::where('is_admin', false)->get();
+        $adminId = Auth::id();
+
+        $usuarios = User::where('is_admin', false)
+            ->where('admin_id', $adminId)
+            ->get();
+
         return view('usuarios.index', compact('usuarios'));
     }
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $admin = Auth::user();
+
+        // Cria o funcionário já vinculado ao admin logado
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'is_admin' => false,
+            'admin_id' => $admin->id,
+        ]);
+
+
+        return redirect()->route('usuarios.index')->with('success', 'Funcionário criado com sucesso!');
+    }
+
 
     public function show(User $user)
     {
